@@ -1,16 +1,16 @@
 package transport
 
 import (
-	"github.com/vcilabs/pkg/utils"
 	"log"
 	"net/http"
+	"moul.io/http2curl/v2"
 )
 
 func Debug() Middleware {
 	return func(rt http.RoundTripper) http.RoundTripper {
 		return roundTripper(func(req *http.Request) (resp *http.Response, err error) {
 			defer func() {
-				c, _ := utils.GetCurlCommand(req)
+				c, _ := http2curl.GetCurlCommand(req)
 
 				log.Printf("--> %s %s", req.Method, req.URL)
 				log.Printf("%s", c.String())
