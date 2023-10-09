@@ -21,25 +21,21 @@ func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 // to clone the original request before modifying it, e.g. golang.org/x/oauth2:
 // https://cs.opensource.google/go/x/oauth2/+/refs/tags/v0.13.0:transport.go;l=50.
 //
-// A typical use case is to debug and print all outgoing requests to logs:
+// A typical use case is to set User-Agent, Authorization or TraceID headers:
 //
-// http.DefaultTransport = transport.Chain(
+//	http.DefaultTransport = transport.Chain(
+//		http.DefaultTransport,
+//		transport.UserAgent("my-app/v1.0.0"),
+//		transport.Authorization(fmt.Sprintf("BEARER %v", jwt)),
+//		transport.TraceID,
+//	)
 //
-//	http.DefaultTransport,
-//	transport.Debug,
+// Or debug all outgoing requests in a debug mode:
 //
-// )
-//
-// Or create Alida-specific client with S2S authentication:
-//
-//	alidaAuthHttpClient := &http.Client{
-//	  Transport: transport.Chain(
-//	    http.DefaultTransport,
-//	    transport.Auth(authClient, userId, email),
-//	    transport.VCTraceID,
-//	  ),
-//	  Timeout: 15 * time.Second,
-//	}
+//	http.DefaultTransport = transport.Chain(
+//		http.DefaultTransport,
+//		transport.Debug,
+//	)
 func Chain(base http.RoundTripper, mw ...func(http.RoundTripper) http.RoundTripper) *chain {
 	if base == nil {
 		base = http.DefaultTransport
