@@ -8,7 +8,7 @@ import (
 	"moul.io/http2curl/v2"
 )
 
-func Debug() Middleware {
+func Debug() func(http.RoundTripper) http.RoundTripper {
 	return func(next http.RoundTripper) http.RoundTripper {
 		return RoundTripFunc(func(req *http.Request) (resp *http.Response, err error) {
 			curlCommand, _ := http2curl.GetCurlCommand(req)

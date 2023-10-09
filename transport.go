@@ -2,9 +2,6 @@ package transport
 
 import "net/http"
 
-// Middleware is our Middleware creation functionality.
-type Middleware func(http.RoundTripper) http.RoundTripper
-
 type RoundTripFunc func(r *http.Request) (*http.Response, error)
 
 func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -13,7 +10,7 @@ func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 
 type chain struct {
 	rt          http.RoundTripper
-	middlewares []Middleware
+	middlewares []func(http.RoundTripper) http.RoundTripper
 }
 
 func (c *chain) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -33,7 +30,7 @@ func (c *chain) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 // Chain wraps http.DefaultTransport with extra RoundTripper middlewares.
-func Chain(rt http.RoundTripper, middlewares ...Middleware) *chain {
+func Chain(rt http.RoundTripper, middlewares ...func(http.RoundTripper) http.RoundTripper) *chain {
 	if rt == nil {
 		rt = http.DefaultTransport
 	}
