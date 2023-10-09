@@ -2,25 +2,49 @@ package transport
 
 import "net/http"
 
-// Middleware is our middleware creation functionality.
+// Middleware is our Middleware creation functionality.
 type Middleware func(http.RoundTripper) http.RoundTripper
 
-type roundTripper func(r *http.Request) (*http.Response, error)
+type RoundTripFunc func(r *http.Request) (*http.Response, error)
 
-func (rt roundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	return rt(req)
+func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
 }
 
-// Chain is a handy function to wrap a base RoundTripper (optional)
-// with the middlewares.
-func Chain(rt http.RoundTripper, middlewares ...Middleware) http.RoundTripper {
+type chain struct {
+	rt          http.RoundTripper
+	middlewares []Middleware
+}
+
+func (c *chain) RoundTrip(req *http.Request) (*http.Response, error) {
+	rt := c.rt
+
+	// Apply middlewares in reversed order, so if the following come in:
+	// [Auth, VctraceId, Debug]
+	// then they are applied in this order:
+	// rt = Debug(rt)
+	// rt = VctraceId(rt)
+	// rt = Auth(rt)
+	for i := len(c.middlewares) - 1; i >= 0; i-- {
+		rt = c.middlewares[i](rt)
+	}
+
+	return rt.RoundTrip(req)
+}
+
+// Chain wraps http.DefaultTransport with extra RoundTripper middlewares.
+func Chain(rt http.RoundTripper, middlewares ...Middleware) *chain {
 	if rt == nil {
 		rt = http.DefaultTransport
 	}
 
-	for _, m := range middlewares {
-		rt = m(rt)
+	if c, ok := rt.(*chain); ok {
+		c.middlewares = append(c.middlewares, middlewares...)
+		return c
 	}
 
-	return rt
+	return &chain{
+		rt:          rt,
+		middlewares: middlewares,
+	}
 }
