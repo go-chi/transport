@@ -1,6 +1,8 @@
 package transport
 
 import (
+	"bytes"
+	"io"
 	"log"
 	"net/http"
 
@@ -20,6 +22,22 @@ func Debug() Middleware {
 
 				log.Printf("%s", c.String())
 			}()
+
+			return rt.RoundTrip(req)
+		})
+	}
+}
+
+func DebugRequestBody() Middleware {
+	return func(rt http.RoundTripper) http.RoundTripper {
+		return roundTripper(func(req *http.Request) (resp *http.Response, err error) {
+			buf, err := io.ReadAll(req.Body)
+			if err != nil {
+				log.Printf("error copying req.Body: %v", err)
+			}
+			req.Body = io.NopCloser(bytes.NewBuffer(buf))
+
+			log.Printf("request body (len %v):\n%s", len(buf), string(buf))
 
 			return rt.RoundTrip(req)
 		})
