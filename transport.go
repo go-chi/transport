@@ -2,46 +2,81 @@ package transport
 
 import "net/http"
 
+// RoundTripFunc, similar to http.HandlerFunc, is an adapter
+// to allow the use of ordinary functions as http.RoundTrippers.
 type RoundTripFunc func(r *http.Request) (*http.Response, error)
 
 func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 	return f(req)
 }
 
+// Chain wraps given base RoundTripper, which is used to make HTTP requests
+// (e.g. http.DefaultTransport) with RoundTripper middlewares.
+//
+// The middlewares can print, debug or modify request/response headers,
+// cookies, context timeouts etc.
+//
+// Note: Per stdlib docs, RoundTrip should not modify the original request,
+// except for consuming and closing the request's body. Thus, it's advised
+// to clone the original request before modifying it, e.g. golang.org/x/oauth2:
+// https://cs.opensource.google/go/x/oauth2/+/refs/tags/v0.13.0:transport.go;l=50.
+//
+// A typical use case is to debug and print all outgoing requests to logs:
+//
+// http.DefaultTransport = transport.Chain(
+//
+//	http.DefaultTransport,
+//	transport.Debug,
+//
+// )
+//
+// Or create Alida-specific client with S2S authentication:
+//
+//	alidaAuthHttpClient := &http.Client{
+//	  Transport: transport.Chain(
+//	    http.DefaultTransport,
+//	    transport.Auth(authClient, userId, email),
+//	    transport.VCTraceID,
+//	  ),
+//	  Timeout: 15 * time.Second,
+//	}
+func Chain(base http.RoundTripper, mw ...func(http.RoundTripper) http.RoundTripper) *chain {
+	if base == nil {
+		base = http.DefaultTransport
+	}
+
+	if c, ok := base.(*chain); ok {
+		c.middlewares = append(c.middlewares, mw...)
+		return c
+	}
+
+	return &chain{
+		baseTransport: base,
+		middlewares:   mw,
+	}
+}
+
 type chain struct {
-	rt          http.RoundTripper
-	middlewares []func(http.RoundTripper) http.RoundTripper
+	baseTransport http.RoundTripper
+	middlewares   []func(http.RoundTripper) http.RoundTripper
 }
 
 func (c *chain) RoundTrip(req *http.Request) (*http.Response, error) {
-	rt := c.rt
+	rt := c.baseTransport
 
-	// Apply middlewares in reversed order, so if the following come in:
-	// [Auth, VctraceId, Debug]
-	// then they are applied in this order:
-	// rt = Debug(rt)
-	// rt = VctraceId(rt)
-	// rt = Auth(rt)
+	// Apply middlewares in reversed order so the first middleware becomes
+	// the innermost onion layer and the last becomes the outermost. Example:
+	// Given
+	//   [Auth, VCTraceID, Debug],
+	// the middlewares are applied in this order:
+	//   rt = Debug(rt)
+	//   rt = VCTraceID(rt)
+	//   rt = Auth(rt)
+	// The Auth and VCTraceID are called before the Debug middleware,
+	// which can then see the final request headers, as seen by http.DefaultTransport.
 	for i := len(c.middlewares) - 1; i >= 0; i-- {
 		rt = c.middlewares[i](rt)
 	}
 
 	return rt.RoundTrip(req)
-}
-
-// Chain wraps http.DefaultTransport with extra RoundTripper middlewares.
-func Chain(rt http.RoundTripper, middlewares ...func(http.RoundTripper) http.RoundTripper) *chain {
-	if rt == nil {
-		rt = http.DefaultTransport
-	}
-
-	if c, ok := rt.(*chain); ok {
-		c.middlewares = append(c.middlewares, middlewares...)
-		return c
-	}
-
-	return &chain{
-		rt:          rt,
-		middlewares: middlewares,
-	}
 }
