@@ -39,6 +39,11 @@ func TestSetHeaderFunc(t *testing.T) {
 		Timeout: 15 * time.Second,
 	}
 
+	req, err := http.NewRequest("GET", srv.URL, nil)
+	if err != nil {
+		t.Fatalf("creating request: %v", err)
+	}
+
 	// Send request concurrently.
 	// Each request should send random Authorization header value.
 	//
@@ -49,7 +54,7 @@ func TestSetHeaderFunc(t *testing.T) {
 	var g errgroup.Group
 	for i := 0; i < 128; i++ {
 		g.Go(func() error {
-			resp, err := authClient.Get(srv.URL)
+			resp, err := authClient.Do(req)
 			if err != nil {
 				return fmt.Errorf("sending auth'd request: %w", err)
 			}
