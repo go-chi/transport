@@ -11,25 +11,25 @@ import (
 	"github.com/golang-cz/transport"
 )
 
-func TestTransport(t *testing.T) {
+func TestSetHeader(t *testing.T) {
 	userAgent := "my-app/v1.0.0"
 	authHeader := fmt.Sprintf("BEARER %v", "AUTH")
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("User-Agent") != userAgent {
-			w.WriteHeader(500)
+			w.WriteHeader(400)
 			fmt.Fprintf(w, "%v", fmt.Errorf("unexpected User-Agent header: %q", r.Header.Get("User-Agent")))
 			return
 		}
 
 		if r.Header.Get("Authorization") != authHeader {
-			w.WriteHeader(500)
+			w.WriteHeader(401)
 			fmt.Fprintf(w, "%v", fmt.Errorf("unexpected Authorization header: %q", r.Header.Get("Authorization")))
 			return
 		}
 
 		if r.Header.Get("X-EXTRA") != "value" {
-			w.WriteHeader(500)
+			w.WriteHeader(400)
 			fmt.Fprintf(w, "%v", fmt.Errorf("unexpected X-EXTRA header: %q", r.Header.Get("X-EXTRA")))
 			return
 		}
@@ -45,6 +45,7 @@ func TestTransport(t *testing.T) {
 			transport.UserAgent(userAgent),
 			transport.Authorization(authHeader),
 			transport.SetHeader("x-extra", "value"),
+			transport.DebugRequests,
 		),
 		Timeout: 15 * time.Second,
 	}
