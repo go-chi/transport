@@ -8,7 +8,7 @@ import (
 	"moul.io/http2curl/v2"
 )
 
-func Debug(next http.RoundTripper) http.RoundTripper {
+func DebugRequests(next http.RoundTripper) http.RoundTripper {
 	return RoundTripFunc(func(req *http.Request) (resp *http.Response, err error) {
 		curlCommand, _ := http2curl.GetCurlCommand(req)
 		log.Printf("%v", curlCommand)

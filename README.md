@@ -1,10 +1,10 @@
-# Go HTTP Transport - middleware for outgoing HTTP requests
+# Go HTTP transports & middlewares for outgoing HTTP requests
 
 ## Examples
 
 Set up HTTP client, which sets `User-Agent`, `Authorization` and `TraceID` headers automatically :
 ```go
-httpClient := http.Client{
+authClient := http.Client{
     Transport: transport.Chain(
         http.DefaultTransport,
         transport.UserAgent("my-app/v1.0.0"),
@@ -20,7 +20,7 @@ Or debug all outgoing requests globally within your application:
 if debugMode {
     http.DefaultTransport = transport.Chain(
         http.DefaultTransport,
-        transport.Debug,
+        transport.DebugRequests,
     )
 }
 ```

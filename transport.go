@@ -23,18 +23,21 @@ func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 //
 // A typical use case is to set User-Agent, Authorization or TraceID headers:
 //
-//	http.DefaultTransport = transport.Chain(
-//		http.DefaultTransport,
-//		transport.UserAgent("my-app/v1.0.0"),
-//		transport.Authorization(fmt.Sprintf("BEARER %v", jwt)),
-//		transport.TraceID,
-//	)
+//	authClient := http.Client{
+//	    Transport: transport.Chain(
+//	        http.DefaultTransport,
+//	        transport.UserAgent("my-app/v1.0.0"),
+//	        transport.Authorization(fmt.Sprintf("BEARER %v", jwt)),
+//	        transport.TraceID,
+//	    ),
+//	    Timeout: 15 * time.Second,
+//	}
 //
 // Or debug all outgoing requests in a debug mode:
 //
 //	http.DefaultTransport = transport.Chain(
 //		http.DefaultTransport,
-//		transport.Debug,
+//		transport.DebugRequests,
 //	)
 func Chain(base http.RoundTripper, mw ...func(http.RoundTripper) http.RoundTripper) *chain {
 	if base == nil {
