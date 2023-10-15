@@ -8,6 +8,7 @@ func SetHeader(header string, value string) func(http.RoundTripper) http.RoundTr
 	return func(next http.RoundTripper) http.RoundTripper {
 		return RoundTripFunc(func(req *http.Request) (resp *http.Response, err error) {
 			r := cloneRequest(req)
+
 			r.Header.Set(http.CanonicalHeaderKey(header), value)
 
 			return next.RoundTrip(r)

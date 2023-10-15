@@ -10,15 +10,21 @@ import (
 
 func DebugRequests(next http.RoundTripper) http.RoundTripper {
 	return RoundTripFunc(func(req *http.Request) (resp *http.Response, err error) {
-		curlCommand, _ := http2curl.GetCurlCommand(req)
+		r := cloneRequest(req)
+
+		curlCommand, _ := http2curl.GetCurlCommand(r)
 		log.Printf("%v", curlCommand)
-		log.Printf("request: %s %s", req.Method, req.URL)
+		log.Printf("request: %s %s", r.Method, r.URL)
 
 		startTime := time.Now()
 		defer func() {
-			log.Printf("response (%v): %v %s", time.Since(startTime), resp.Status, resp.Request.URL)
+			if resp != nil {
+				log.Printf("response (HTTP %v): %v %s", time.Since(startTime), resp.Status, r.URL)
+			} else {
+				log.Printf("response (<nil>): %v %s", time.Since(startTime), r.URL)
+			}
 		}()
 
-		return next.RoundTrip(req)
+		return next.RoundTrip(r)
 	})
 }
