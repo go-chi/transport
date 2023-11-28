@@ -1,5 +1,10 @@
 # Go HTTP transports & middlewares for outgoing HTTP requests
 
+Chaining transports is a pattern originally inspired by this article https://dev.to/stevenacoffman/tripperwares-http-client-middleware-chaining-roundtrippers-3o00.
+This pattern is similar to middleware pattern which is used to enrich a context of http request coming to your application.
+There are multiple use-cases where this pattern comes handy such as request logging, caching, authentication and even implementation of retry mechanisms.
+
+
 ## Examples
 
 Set up HTTP client, which sets `User-Agent`, `Authorization` and `TraceID` headers automatically :

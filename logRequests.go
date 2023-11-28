@@ -8,7 +8,7 @@ import (
 	"moul.io/http2curl/v2"
 )
 
-func DebugRequests(next http.RoundTripper) http.RoundTripper {
+func LogRequests(next http.RoundTripper) http.RoundTripper {
 	return RoundTripFunc(func(req *http.Request) (resp *http.Response, err error) {
 		r := cloneRequest(req)
 
