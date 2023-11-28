@@ -2,7 +2,6 @@ package transport
 
 import (
 	"net/http"
-	"net/url"
 	"log"
 	"time"
 	"strconv"
@@ -13,7 +12,7 @@ func Retry(baseTransport http.RoundTripper, maxRetries int) func(http.RoundTripp
 	return func(next http.RoundTripper) http.RoundTripper {
 		return RoundTripFunc(func(req *http.Request) (resp *http.Response, err error) {
 			defer func() {
-				if err == nil || !isRetryable(err, resp) {
+				if isRetryable(resp) {
 					for i := 1; i <= maxRetries; i++ {
 						wait := backOff(resp, i)
 
@@ -31,7 +30,7 @@ func Retry(baseTransport http.RoundTripper, maxRetries int) func(http.RoundTripp
 
 						startTime := time.Now()
 						resp, err = baseTransport.RoundTrip(req)
-						if err == nil || !isRetryable(err, resp) {
+						if !isRetryable(resp) {
 							break
 						}
 
@@ -67,13 +66,8 @@ func backOff(resp *http.Response, attempt int) time.Duration {
 	return sleep
 }
 
-func isRetryable(err error, resp *http.Response) bool {
+func isRetryable(resp *http.Response) bool {
 	if resp == nil {
-		return false
-	}
-
-	// any error returned from Client.Do will be *url.Error
-	if _, ok := err.(*url.Error); ok {
 		return false
 	}
 
