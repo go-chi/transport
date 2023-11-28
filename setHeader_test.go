@@ -42,7 +42,7 @@ func TestSetHeader(t *testing.T) {
 	authClient := http.Client{
 		Transport: transport.Chain(
 			http.DefaultTransport,
-			transport.UserAgent(userAgent),
+			transport.SetHeader("User-Agent", userAgent),
 			transport.Authorization(authHeader),
 			transport.SetHeader("x-extra", "value"),
 			transport.LogRequests,
