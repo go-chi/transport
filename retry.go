@@ -32,7 +32,7 @@ func Retry(baseTransport http.RoundTripper, maxRetries int) func(http.RoundTripp
 	return func(next http.RoundTripper) http.RoundTripper {
 		return RoundTripFunc(func(req *http.Request) (resp *http.Response, err error) {
 			defer func() {
-				if isRetryable(err, resp) {
+				if err == nil || !isRetryable(err, resp) {
 					for i := 1; i <= maxRetries; i++ {
 						wait := backOff(resp, i)
 
@@ -50,13 +50,12 @@ func Retry(baseTransport http.RoundTripper, maxRetries int) func(http.RoundTripp
 
 						startTime := time.Now()
 						resp, err = baseTransport.RoundTrip(req)
-						if isRetryable(err, resp) {
-							log.Printf("retrying %d request: %s %s", i, req.Method, req.URL)
-							log.Printf("response (%v): %v %s", time.Since(startTime), resp.Status, resp.Request.URL)
-							continue
-						} else {
+						if err == nil || !isRetryable(err, resp) {
 							break
 						}
+
+						log.Printf("retrying %d request: %s %s", i, req.Method, req.URL)
+						log.Printf("response (%v): %v %s", time.Since(startTime), resp.Status, resp.Request.URL)
 					}
 				}
 			}()
