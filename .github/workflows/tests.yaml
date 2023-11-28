@@ -1,0 +1,24 @@
+name: Tests
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git clone
+        uses: actions/checkout@v3
+        with:
+         ref: ${{ github.event.pull_request.head.sha }} # Checkout Pull Request HEAD commit instead of the default Pull Request merge commit.
+         fetch-depth: 1
+      - name: Setup golang:1.21
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21.0"
+      - name: Run tests
+        run: |
+          go test ./...
