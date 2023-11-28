@@ -26,10 +26,10 @@ func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 //	authClient := http.Client{
 //	    Transport: transport.Chain(
 //	        http.DefaultTransport,
-//			transport.SetHeader("User-Agent", userAgent),
-//			transport.SetHeader("Authorization", authHeader),
-//			transport.SetHeader("x-extra", "value"),
-//	        transport.TraceID,
+//	        transport.SetHeader("User-Agent", userAgent),
+//	        transport.SetHeader("Authorization", authHeader),
+//	        transport.SetHeader("x-extra", "value"),
+//			transport.TraceID,
 //	    ),
 //	    Timeout: 15 * time.Second,
 //	}
