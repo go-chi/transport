@@ -12,8 +12,8 @@ Set up HTTP client, which sets `User-Agent`, `Authorization` and `TraceID` heade
 authClient := http.Client{
     Transport: transport.Chain(
         http.DefaultTransport,
-        transport.UserAgent("my-app/v1.0.0"),
-        transport.Authorization(fmt.Sprintf("BEARER %v", jwt)),
+        transport.SetHeader("User-Agent", userAgent),
+        transport.SetHeader("Authorization", authHeader),
         transport.TraceID,
     ),
     Timeout: 15 * time.Second,
@@ -25,7 +25,7 @@ Or debug all outgoing requests globally within your application:
 if debugMode {
     http.DefaultTransport = transport.Chain(
         http.DefaultTransport,
-        transport.DebugRequests,
+        transport.LogRequests,
     )
 }
 ```
