@@ -34,7 +34,7 @@ func TestSetHeaderFunc(t *testing.T) {
 		Transport: transport.Chain(
 			http.DefaultTransport,
 			transport.SetHeaderFunc("Authorization", issueRandomAuthToken),
-			transport.DebugRequests,
+			transport.LogRequests,
 		),
 		Timeout: 15 * time.Second,
 	}

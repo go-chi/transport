@@ -37,7 +37,7 @@ func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 //
 //	http.DefaultTransport = transport.Chain(
 //		http.DefaultTransport,
-//		transport.DebugRequests,
+//		transport.LogRequests,
 //	)
 func Chain(base http.RoundTripper, mw ...func(http.RoundTripper) http.RoundTripper) *chain {
 	if base == nil {

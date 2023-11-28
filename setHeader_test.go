@@ -45,7 +45,7 @@ func TestSetHeader(t *testing.T) {
 			transport.UserAgent(userAgent),
 			transport.Authorization(authHeader),
 			transport.SetHeader("x-extra", "value"),
-			transport.DebugRequests,
+			transport.LogRequests,
 		),
 		Timeout: 15 * time.Second,
 	}
