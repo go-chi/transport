@@ -43,7 +43,7 @@ func TestSetHeader(t *testing.T) {
 		Transport: transport.Chain(
 			http.DefaultTransport,
 			transport.SetHeader("User-Agent", userAgent),
-			transport.Authorization(authHeader),
+			transport.SetHeader("Authorization", authHeader),
 			transport.SetHeader("x-extra", "value"),
 			transport.LogRequests,
 		),

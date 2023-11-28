@@ -26,8 +26,9 @@ func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 //	authClient := http.Client{
 //	    Transport: transport.Chain(
 //	        http.DefaultTransport,
-//	        transport.UserAgent("my-app/v1.0.0"),
-//	        transport.Authorization(fmt.Sprintf("BEARER %v", jwt)),
+//			transport.SetHeader("User-Agent", userAgent),
+//			transport.SetHeader("Authorization", authHeader),
+//			transport.SetHeader("x-extra", "value"),
 //	        transport.TraceID,
 //	    ),
 //	    Timeout: 15 * time.Second,
