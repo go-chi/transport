@@ -32,7 +32,7 @@ if debugMode {
 
 # Authors
 - [Golang.cz](https://golang.cz/)
-- See [list of contributors](https://github.com/golang-cz/transport/graphs/contributors).
+- See [list of contributors](https://github.com/go-chi/transport/graphs/contributors).
 
 # License
 [MIT license](./LICENSE)

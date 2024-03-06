@@ -1,6 +1,6 @@
-module github.com/golang-cz/transport
+module github.com/go-chi/transport
 
-go 1.21.1
+go 1.14
 
 require moul.io/http2curl/v2 v2.3.0
 
