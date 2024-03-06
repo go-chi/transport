@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang-cz/transport"
+	"github.com/go-chi/transport"
 	"golang.org/x/sync/errgroup"
 )
 

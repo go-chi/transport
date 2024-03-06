@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang-cz/transport"
+	"github.com/go-chi/transport"
 )
 
 func TestSetHeader(t *testing.T) {
