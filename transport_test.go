@@ -1,4 +1,4 @@
-package transport
+package transport_test
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
+	"github.com/go-chi/transport"
 )
 
 func TestChain(t *testing.T) {
@@ -21,10 +22,10 @@ func TestChain(t *testing.T) {
 
 	client := &http.Client{
 		Timeout: 15 * time.Second,
-		Transport: Chain(
+		Transport: transport.Chain(
 			nil,
-			SetHeader("User-Agent", "transport-chain/v1.0.0"),
-			LogRequests,
+			transport.SetHeader("User-Agent", "transport-chain/v1.0.0"),
+			transport.LogRequests(nil),
 		),
 	}
 
@@ -60,10 +61,10 @@ func TestChainWithRetries(t *testing.T) {
 
 	client := &http.Client{
 		Timeout: 15 * time.Second,
-		Transport: Chain(
+		Transport: transport.Chain(
 			http.DefaultTransport,
-			Retry(http.DefaultTransport, 5),
-			LogRequests,
+			transport.Retry(http.DefaultTransport, 5),
+			transport.LogRequests(nil),
 		),
 	}
 
@@ -100,10 +101,10 @@ func TestChainWithRetryAfter(t *testing.T) {
 
 	client := &http.Client{
 		Timeout: 15 * time.Second,
-		Transport: Chain(
+		Transport: transport.Chain(
 			http.DefaultTransport,
-			Retry(http.DefaultTransport, 5),
-			LogRequests,
+			transport.Retry(http.DefaultTransport, 5),
+			transport.LogRequests(nil),
 		),
 	}
 
