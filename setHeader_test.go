@@ -7,7 +7,6 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
-
 	"github.com/go-chi/transport"
 )
 
@@ -45,7 +44,7 @@ func TestSetHeader(t *testing.T) {
 			transport.SetHeader("User-Agent", userAgent),
 			transport.SetHeader("Authorization", authHeader),
 			transport.SetHeader("x-extra", "value"),
-			transport.LogRequests,
+			transport.LogRequests(nil),
 		),
 		Timeout: 15 * time.Second,
 	}

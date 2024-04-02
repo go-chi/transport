@@ -9,7 +9,6 @@ import (
 	"sync"
 	"testing"
 	"time"
-
 	"github.com/go-chi/transport"
 	"golang.org/x/sync/errgroup"
 )
@@ -34,7 +33,7 @@ func TestSetHeaderFunc(t *testing.T) {
 		Transport: transport.Chain(
 			http.DefaultTransport,
 			transport.SetHeaderFunc("Authorization", issueRandomAuthToken),
-			transport.LogRequests,
+			transport.LogRequests(nil),
 		),
 		Timeout: 15 * time.Second,
 	}

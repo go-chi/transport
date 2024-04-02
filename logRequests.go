@@ -1,30 +1,42 @@
 package transport
 
 import (
-	"log"
 	"net/http"
 	"time"
+	"log"
 
 	"moul.io/http2curl/v2"
 )
 
-func LogRequests(next http.RoundTripper) http.RoundTripper {
-	return RoundTripFunc(func(req *http.Request) (resp *http.Response, err error) {
-		r := cloneRequest(req)
+type DefaultLogger struct{}
 
-		curlCommand, _ := http2curl.GetCurlCommand(r)
-		log.Printf("%v", curlCommand)
-		log.Printf("request: %s %s", r.Method, r.URL)
+func (*DefaultLogger) Info(format string, v ...interface{}) {
+	log.Printf(format, v...)
+}
 
-		startTime := time.Now()
-		defer func() {
-			if resp != nil {
-				log.Printf("response (HTTP %v): %v %s", time.Since(startTime), resp.Status, r.URL)
-			} else {
-				log.Printf("response (<nil>): %v %s", time.Since(startTime), r.URL)
-			}
-		}()
+func LogRequests(logger Logger) func(http.RoundTripper) http.RoundTripper {
+	if logger == nil {
+		logger = &DefaultLogger{}
+	}
 
-		return next.RoundTrip(r)
-	})
+	return func(next http.RoundTripper) http.RoundTripper {
+		return RoundTripFunc(func(req *http.Request) (resp *http.Response, err error) {
+			r := cloneRequest(req)
+
+			curlCommand, _ := http2curl.GetCurlCommand(r)
+			logger.Info("%v", curlCommand)
+			logger.Info("request: %s %s", r.Method, r.URL)
+
+			startTime := time.Now()
+			defer func() {
+				if resp != nil {
+					logger.Info("response (HTTP %v): %v %s", time.Since(startTime), resp.Status, r.URL)
+				} else {
+					logger.Info("response (<nil>): %v %s", time.Since(startTime), r.URL)
+				}
+			}()
+
+			return next.RoundTrip(r)
+		})
+	}
 }

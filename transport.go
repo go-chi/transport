@@ -1,6 +1,12 @@
 package transport
 
-import "net/http"
+import (
+	"net/http"
+)
+
+type Logger interface {
+	Info(format string, v ...interface{})
+}
 
 // RoundTripFunc, similar to http.HandlerFunc, is an adapter
 // to allow the use of ordinary functions as http.RoundTrippers.
