@@ -10,7 +10,7 @@ import (
 
 func LogRequests(next http.RoundTripper) http.RoundTripper {
 	return RoundTripFunc(func(req *http.Request) (resp *http.Response, err error) {
-		r := cloneRequest(req)
+		r := CloneRequest(req)
 
 		curlCommand, _ := http2curl.GetCurlCommand(r)
 		log.Printf("%v", curlCommand)
