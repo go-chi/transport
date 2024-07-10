@@ -45,7 +45,7 @@ func TestSetHeader(t *testing.T) {
 			transport.SetHeader("User-Agent", userAgent),
 			transport.SetHeader("Authorization", authHeader),
 			transport.SetHeader("x-extra", "value"),
-			transport.LogRequests,
+			transport.LogRequests(&transport.DefaultLogger{PrintResponsePayload: true}),
 		),
 		Timeout: 15 * time.Second,
 	}
