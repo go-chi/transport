@@ -7,7 +7,7 @@ There are multiple use-cases where this pattern comes handy such as request logg
 
 ## Examples
 
-Set up HTTP client, which sets `User-Agent`, `Authorization` and `TraceID` headers automatically :
+Set up HTTP client, which sets `User-Agent`, `Authorization` and `TraceID` headers automatically:
 ```go
 authClient := http.Client{
     Transport: transport.Chain(
@@ -22,12 +22,12 @@ authClient := http.Client{
 
 Or debug all outgoing requests globally within your application:
 ```go
-if debugMode {
-    http.DefaultTransport = transport.Chain(
-        http.DefaultTransport,
-        transport.LogRequests,
-    )
-}
+debugMode := os.Getenv("DEBUG") == "true"
+
+http.DefaultTransport = transport.Chain(
+    http.DefaultTransport,
+    transport.If(debugMode, transport.LogRequests),
+)
 ```
 
 # Authors

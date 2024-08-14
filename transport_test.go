@@ -13,6 +13,7 @@ func TestChain(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("User-Agent") != "transport-chain/v1.0.0" {
 			w.WriteHeader(500)
+			return
 		}
 
 		fmt.Fprintf(w, expected)
