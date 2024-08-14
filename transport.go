@@ -46,21 +46,21 @@ func Chain(base http.RoundTripper, mw ...func(http.RoundTripper) http.RoundTripp
 	}
 
 	// Filter out nil transports.
-	filtered := []func(http.RoundTripper) http.RoundTripper{}
+	mws := []func(http.RoundTripper) http.RoundTripper{}
 	for _, fn := range mw {
 		if fn != nil {
-			filtered = append(filtered, fn)
+			mws = append(mws, fn)
 		}
 	}
 
 	if c, ok := base.(*chain); ok {
-		c.middlewares = append(c.middlewares, filtered...)
+		c.middlewares = append(c.middlewares, mws...)
 		return c
 	}
 
 	return &chain{
 		baseTransport: base,
-		middlewares:   filtered,
+		middlewares:   mws,
 	}
 }
 

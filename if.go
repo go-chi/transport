@@ -16,5 +16,6 @@ func If(condition bool, transport func(http.RoundTripper) http.RoundTripper) fun
 	if condition {
 		return transport
 	}
+
 	return nil
 }
