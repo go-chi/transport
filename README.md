@@ -20,13 +20,13 @@ authClient := http.Client{
 }
 ```
 
-Or debug all outgoing requests globally within your application:
+Or debug all outgoing requests as `curl` globally within your application:
 ```go
 debugMode := os.Getenv("DEBUG") == "true"
 
 http.DefaultTransport = transport.Chain(
     http.DefaultTransport,
-    transport.If(debugMode, transport.LogRequests),
+    transport.If(debugMode, transport.LogRequests(transport.LogOptions{Concise: true, CURL: true})),
 )
 ```
 
