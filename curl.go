@@ -30,13 +30,6 @@ func curl(r *http.Request, body *bytes.Buffer) string {
 	return b.String()
 }
 
-func scheme(r *http.Request) string {
-	if r.TLS != nil {
-		return "https"
-	}
-	return "http"
-}
-
 func singleQuoted(v string) string {
 	return fmt.Sprintf("'%s'", strings.ReplaceAll(v, "'", `'\''`))
 }
