@@ -9,12 +9,16 @@ There are multiple use-cases where this pattern comes handy such as request logg
 
 Set up HTTP client, which sets `User-Agent`, `Authorization` and `TraceID` headers automatically:
 ```go
+import (
+    "github.com/go-chi/traceid"
+)
+
 authClient := http.Client{
     Transport: transport.Chain(
         http.DefaultTransport,
         transport.SetHeader("User-Agent", userAgent),
         transport.SetHeader("Authorization", authHeader),
-        transport.TraceID,
+        traceid.Transport,
     ),
     Timeout: 15 * time.Second,
 }
