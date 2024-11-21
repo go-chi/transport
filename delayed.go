@@ -7,36 +7,29 @@ import (
 	"time"
 )
 
-type DelayedConfig struct {
-	// RequestDelayMin is the delay before the request is sent.
-	RequestDelayMin time.Duration
-
-	// RequestDelayMax is the maximum delay before the request is sent.
-	RequestDelayMax time.Duration
-
-	// ResponseDelayMin is the delay before the response is returned.
-	ResponseDelayMin time.Duration
-
-	// ResponseDelayMax is the maximum delay before the response is returned.
-	ResponseDelayMax time.Duration
+// DelayedRequest is a middleware that delays requests, useful when testing
+// timeouts while waiting on a request to be sent upstream.
+func DelayedRequest(requestDelayMin, requestDelayMax time.Duration) func(http.RoundTripper) http.RoundTripper {
+	if requestDelayMin > requestDelayMax {
+		panic(fmt.Sprintf("requestDelayMin %v is greater than requestDelayMax %v", requestDelayMin, requestDelayMax))
+	}
+	return delayedRoundTripper(randDelay(requestDelayMin, requestDelayMax), 0)
 }
 
-// Delayed is a middleware that delays requests and responses, useful when
-// testing timeouts.
-func Delayed(conf DelayedConfig) func(http.RoundTripper) http.RoundTripper {
-	if conf.RequestDelayMin > conf.RequestDelayMax {
-		panic(fmt.Errorf("connect delay min %v is greater than max %v", conf.RequestDelayMin, conf.RequestDelayMax))
+// DelayedResponse is a middleware that delays responses, useful when testing
+// timeouts after upstream has processed the request, the response is hold back
+// until the delay is over.
+func DelayedResponse(responseDelayMin, responseDelayMax time.Duration) func(http.RoundTripper) http.RoundTripper {
+	if responseDelayMin > responseDelayMax {
+		panic(fmt.Sprintf("responseDelayMin %v is greater than responseDelayMax %v", responseDelayMin, responseDelayMax))
 	}
+	return delayedRoundTripper(0, randDelay(responseDelayMin, responseDelayMax))
+}
 
-	if conf.ResponseDelayMin > conf.ResponseDelayMax {
-		panic(fmt.Errorf("transport delay min %v is greater than max %v", conf.ResponseDelayMin, conf.ResponseDelayMax))
-	}
-
+func delayedRoundTripper(requestDelay, responseDelay time.Duration) func(http.RoundTripper) http.RoundTripper {
 	return func(next http.RoundTripper) http.RoundTripper {
 		return RoundTripFunc(func(req *http.Request) (*http.Response, error) {
 			ctx := req.Context()
-
-			requestDelay := randDelay(conf.RequestDelayMin, conf.RequestDelayMax)
 
 			// wait before sending request
 			if requestDelay > 0 {
@@ -53,7 +46,6 @@ func Delayed(conf DelayedConfig) func(http.RoundTripper) http.RoundTripper {
 			res, err := next.RoundTrip(req)
 
 			// wait before sending response body
-			responseDelay := randDelay(conf.ResponseDelayMin, conf.ResponseDelayMax)
 			if responseDelay > 0 {
 				ticker := time.NewTicker(responseDelay)
 				defer ticker.Stop()

@@ -23,9 +23,8 @@ func TestDelayed(t *testing.T) {
 		client := &http.Client{
 			Transport: transport.Chain(
 				nil,
-				transport.Delayed(
-					transport.DelayedConfig{},
-				),
+				transport.DelayedRequest(0, 0),
+				transport.DelayedResponse(0, 0),
 			),
 		}
 
@@ -59,12 +58,7 @@ func TestDelayed(t *testing.T) {
 		client := &http.Client{
 			Transport: transport.Chain(
 				nil,
-				transport.Delayed(
-					transport.DelayedConfig{
-						ResponseDelayMin: 100 * time.Millisecond,
-						ResponseDelayMax: 200 * time.Millisecond,
-					},
-				),
+				transport.DelayedResponse(100*time.Millisecond, 200*time.Millisecond),
 			),
 		}
 
@@ -89,11 +83,9 @@ func TestDelayed(t *testing.T) {
 		client := &http.Client{
 			Transport: transport.Chain(
 				nil,
-				transport.Delayed(
-					transport.DelayedConfig{
-						RequestDelayMin: 100 * time.Millisecond,
-						RequestDelayMax: 200 * time.Millisecond,
-					},
+				transport.DelayedResponse(
+					100*time.Millisecond,
+					200*time.Millisecond,
 				),
 			),
 		}
@@ -115,18 +107,12 @@ func TestDelayed(t *testing.T) {
 		}
 	})
 
-	t.Run("delayed connect and response", func(t *testing.T) {
+	t.Run("delayed request and response", func(t *testing.T) {
 		client := &http.Client{
 			Transport: transport.Chain(
 				nil,
-				transport.Delayed(
-					transport.DelayedConfig{
-						RequestDelayMin:  50 * time.Millisecond,
-						RequestDelayMax:  100 * time.Millisecond,
-						ResponseDelayMin: 50 * time.Millisecond,
-						ResponseDelayMax: 100 * time.Millisecond,
-					},
-				),
+				transport.DelayedRequest(50*time.Millisecond, 100*time.Millisecond),
+				transport.DelayedResponse(50*time.Millisecond, 100*time.Millisecond),
 			),
 		}
 
@@ -159,13 +145,7 @@ func TestDelayed(t *testing.T) {
 		client := &http.Client{
 			Transport: transport.Chain(
 				customTransport,
-
-				transport.Delayed(
-					transport.DelayedConfig{
-						RequestDelayMin: 100 * time.Millisecond,
-						RequestDelayMax: 200 * time.Millisecond,
-					},
-				),
+				transport.DelayedRequest(100*time.Millisecond, 200*time.Millisecond),
 			),
 		}
 
@@ -194,12 +174,7 @@ func TestDelayed(t *testing.T) {
 		client := &http.Client{
 			Transport: transport.Chain(
 				nil,
-				transport.Delayed(
-					transport.DelayedConfig{
-						RequestDelayMin: 100 * time.Millisecond,
-						RequestDelayMax: 200 * time.Millisecond,
-					},
-				),
+				transport.DelayedRequest(100*time.Millisecond, 200*time.Millisecond),
 			),
 		}
 
