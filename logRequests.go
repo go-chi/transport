@@ -6,10 +6,9 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"time"
-
-	"log/slog"
 )
 
 type LogOptions struct {
@@ -28,7 +27,7 @@ func LogRequests(opts LogOptions) func(next http.RoundTripper) http.RoundTripper
 				r.Body = io.NopCloser(io.TeeReader(r.Body, &buf))
 			}
 
-			slog.LogAttrs(ctx, slog.LevelDebug, fmt.Sprintf("Request: %v %s", r.Method, r.URL.String()))
+			slog.LogAttrs(ctx, slog.LevelDebug, fmt.Sprintf("Send request: %v %s", r.Method, r.URL.String()))
 
 			startTime := time.Now()
 			defer func() {
@@ -47,14 +46,14 @@ func LogRequests(opts LogOptions) func(next http.RoundTripper) http.RoundTripper
 				}
 
 				if opts.Concise {
-					slog.LogAttrs(ctx, level, fmt.Sprintf("Request: %v %s => HTTP %v (%v)", r.Method, r.URL.String(), statusCode, time.Since(startTime)), attrs...)
+					slog.LogAttrs(ctx, level, fmt.Sprintf("Send request: %v %s => HTTP %v (%v)", r.Method, r.URL.String(), statusCode, time.Since(startTime)), attrs...)
 				} else {
 					attrs = append(attrs,
 						slog.String("url", r.URL.String()),
 						slog.Duration("duration", time.Since(startTime)),
 						slog.Int("status", statusCode),
 					)
-					slog.LogAttrs(ctx, level, fmt.Sprintf("Request"), attrs...)
+					slog.LogAttrs(ctx, level, fmt.Sprintf("Send request"), attrs...)
 				}
 			}()
 
