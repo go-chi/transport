@@ -41,6 +41,9 @@ func LogRequests(opts LogOptions) func(next http.RoundTripper) http.RoundTripper
 				}
 
 				attrs := []slog.Attr{}
+				if err != nil {
+					attrs = append(attrs, slog.Any("error", err))
+				}
 				if opts.CURL {
 					attrs = append(attrs, slog.String("curl", curl(r, &buf)))
 				}
