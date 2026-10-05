@@ -141,29 +141,44 @@ func roundTripHeaders(t *testing.T, rt http.RoundTripper) http.Header {
 	t.Helper()
 	resp, err := rt.RoundTrip(httptest.NewRequest("GET", "http://example.com", nil))
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
+		return nil
 	}
 	return resp.Header
 }
 
 func TestChainDoesNotModifyChainBase(t *testing.T) {
-	shared := transport.Chain(echoHeaders, transport.SetHeader("X-Base", "1"))
+	// Three middlewares leave spare capacity in the base slice, so a copy that
+	// aliases it would let a and b overwrite each other's middleware.
+	shared := transport.Chain(echoHeaders,
+		transport.SetHeader("X-Base", "1"),
+		transport.SetHeader("X-Env", "test"),
+		transport.SetHeader("X-Region", "eu"),
+	)
 
 	a := transport.Chain(shared, transport.SetHeader("X-Who", "a"))
 	b := transport.Chain(shared, transport.SetHeader("X-Who", "b"))
 
+	base := http.Header{"X-Base": {"1"}, "X-Env": {"test"}, "X-Region": {"eu"}}
+	withWho := func(who string) http.Header {
+		h := base.Clone()
+		h.Set("X-Who", who)
+		return h
+	}
 	for _, tt := range []struct {
 		name string
 		rt   http.RoundTripper
 		want http.Header
 	}{
-		{"a", a, http.Header{"X-Base": {"1"}, "X-Who": {"a"}}},
-		{"b", b, http.Header{"X-Base": {"1"}, "X-Who": {"b"}}},
-		{"shared", shared, http.Header{"X-Base": {"1"}}},
+		{"a", a, withWho("a")},
+		{"b", b, withWho("b")},
+		{"shared", shared, base},
 	} {
-		if got := roundTripHeaders(t, tt.rt); !reflect.DeepEqual(got, tt.want) {
-			t.Errorf("%s: headers = %v, want %v", tt.name, got, tt.want)
-		}
+		t.Run(tt.name, func(t *testing.T) {
+			if got := roundTripHeaders(t, tt.rt); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("headers = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
@@ -218,10 +233,12 @@ func TestChainMiddlewareOrder(t *testing.T) {
 		{"plain base", transport.Chain(echoHeaders, record("1"), record("2"), record("3"))},
 		{"chain base", transport.Chain(transport.Chain(echoHeaders, record("1")), record("2"), record("3"))},
 	} {
-		calls = nil
-		roundTripHeaders(t, tt.rt)
-		if !reflect.DeepEqual(calls, want) {
-			t.Errorf("%s: call order = %v, want %v", tt.name, calls, want)
-		}
+		t.Run(tt.name, func(t *testing.T) {
+			calls = nil
+			roundTripHeaders(t, tt.rt)
+			if !reflect.DeepEqual(calls, want) {
+				t.Errorf("call order = %v, want %v", calls, want)
+			}
+		})
 	}
 }
