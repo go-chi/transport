@@ -12,6 +12,7 @@ func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 
 // Chain wraps given base RoundTripper, which is used to make HTTP requests
 // (e.g. http.DefaultTransport) with RoundTripper middlewares.
+// Chain never modifies base; wrapping an existing chain returns a new one.
 //
 // The middlewares can print, debug or modify request/response headers,
 // cookies, context timeouts etc.
@@ -54,8 +55,10 @@ func Chain(base http.RoundTripper, mw ...func(http.RoundTripper) http.RoundTripp
 	}
 
 	if c, ok := base.(*chain); ok {
-		c.middlewares = append(c.middlewares, mws...)
-		return c
+		return &chain{
+			baseTransport: c.baseTransport,
+			middlewares:   append(append([]func(http.RoundTripper) http.RoundTripper(nil), c.middlewares...), mws...),
+		}
 	}
 
 	return &chain{
