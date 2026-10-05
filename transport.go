@@ -53,9 +53,13 @@ func Chain(base http.RoundTripper, mw ...func(http.RoundTripper) http.RoundTripp
 		}
 	}
 
+	// Flatten a chain base into a new chain; never modify the base, which
+	// other callers may share or be running concurrently.
 	if c, ok := base.(*chain); ok {
-		c.middlewares = append(c.middlewares, mws...)
-		return c
+		return &chain{
+			baseTransport: c.baseTransport,
+			middlewares:   append(append([]func(http.RoundTripper) http.RoundTripper(nil), c.middlewares...), mws...),
+		}
 	}
 
 	return &chain{
