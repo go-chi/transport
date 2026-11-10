@@ -1,11 +1,11 @@
 package transport
 
 import (
-	"net/http"
-	"log"
-	"time"
-	"strconv"
+	"log/slog"
 	"math"
+	"net/http"
+	"strconv"
+	"time"
 )
 
 func Retry(baseTransport http.RoundTripper, maxRetries int) func(http.RoundTripper) http.RoundTripper {
@@ -13,16 +13,21 @@ func Retry(baseTransport http.RoundTripper, maxRetries int) func(http.RoundTripp
 		return RoundTripFunc(func(req *http.Request) (resp *http.Response, err error) {
 			defer func() {
 				if isRetryable(resp) {
+					ctx := req.Context()
+
 					for i := 1; i <= maxRetries; i++ {
 						wait := backOff(resp, i)
 
 						timer := time.NewTimer(wait)
 
-						log.Printf("waiting %s", wait.String())
+						slog.LogAttrs(ctx, slog.LevelDebug, "waiting for backoff",
+							slog.String("wait", wait.String()),
+							slog.Int("attempt", i),
+						)
 
 						select {
-						case <-req.Context().Done():
-							log.Printf("request was cancelled")
+						case <-ctx.Done():
+							slog.Log(ctx, slog.LevelDebug, "request was cancelled")
 							timer.Stop()
 							break
 						case <-timer.C:
@@ -34,8 +39,13 @@ func Retry(baseTransport http.RoundTripper, maxRetries int) func(http.RoundTripp
 							break
 						}
 
-						log.Printf("retrying %d request: %s %s", i, req.Method, req.URL)
-						log.Printf("response (%v): %v %s", time.Since(startTime), resp.Status, resp.Request.URL)
+						slog.LogAttrs(ctx, slog.LevelWarn, "retrying request",
+							slog.Int("attempt", i),
+							slog.String("method", req.Method),
+							slog.String("url", req.URL.String()),
+							slog.String("response.status", resp.Status),
+							slog.Duration("response.duration", time.Since(startTime)),
+						)
 					}
 				}
 			}()
