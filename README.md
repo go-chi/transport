@@ -34,6 +34,16 @@ http.DefaultTransport = transport.Chain(
 )
 ```
 
+Refuse plain-http requests, including redirects that downgrade from https:
+```go
+client := http.Client{
+    Transport: transport.Chain(
+        http.DefaultTransport,
+        transport.HTTPSOnly,
+    ),
+}
+```
+
 # Authors
 - [Golang.cz](https://golang.cz/)
 - See [list of contributors](https://github.com/go-chi/transport/graphs/contributors).
